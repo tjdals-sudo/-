@@ -324,21 +324,13 @@
 
 <script>
 /* ────────────────────────────────────────────
-   각 프로그램의 Apps Script 웹앱 주소 (기존 시트에 그대로 쌓임)
+   교사 신청 결과를 받을 Apps Script 웹앱 주소 (교사신청 시트)
    ──────────────────────────────────────────── */
+const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbz53N1ykKcoGV8LWGUoM6M6XtdMfqZ8bc1EyjNJyR3ETFTNGDCR4xFJnM3-PbgTBA/exec";
+
 const PROGRAMS = {
-  class: {
-    label: "하반기 제자반",
-    fee: 10000,
-    url: "https://script.google.com/macros/s/AKfycbzfIIGRadhynFuH5L4u3XO4pxBum_ysfhProxvAiy7IYH8aaX1gDNMrh4kd0HEEqwor/exec",
-    bank: "카카오뱅크", acct: "3333-3303-22899", holder: "박지혜"
-  },
-  trip: {
-    label: "6학년 졸업여행",
-    fee: 10000,
-    url: "https://script.google.com/macros/s/AKfycbx9Xj3LbvtK90cKbteU3SGY-fSolLLso8Um6ZyujYkT2xjnGCbnSsGtPYzxKxDfFAq7/exec",
-    bank: "카카오뱅크", acct: "3333-33-1564836", holder: "강주희"
-  }
+  class: { label: "하반기 제자반",  fee: 10000, bank: "카카오뱅크", acct: "3333-3303-22899", holder: "박지혜" },
+  trip:  { label: "6학년 졸업여행", fee: 10000, bank: "카카오뱅크", acct: "3333-33-1564836", holder: "강주희" }
 };
 
 const $ = id => document.getElementById(id);
@@ -437,39 +429,32 @@ $("next").addEventListener("click", () => {
   submit();
 });
 
-/* ── 제출: 선택한 프로그램마다 각각 전송, 실패한 것만 재시도 ── */
-const sent = { class:false, trip:false };
+/* ── 제출: 한 줄로 전송 ── */
 async function submit(){
-  const p = picked(), d = dept().value;
-  const base = {
+  const p = picked();
+  const payload = {
     timestamp: new Date().toISOString(),
-    group: "교사 (" + d + ")",
-    name: $("name").value.trim(),  studentName: $("name").value.trim(),
-    phone: $("phone").value.trim(), studentPhone: $("phone").value.trim(),
-    parentName: "", parentPhone: ""
+    name:  $("name").value.trim(),
+    dept:  dept().value,
+    phone: $("phone").value.trim(),
+    class: p.class,
+    trip:  p.trip,
+    rrn:   p.trip ? $("rrn").value.trim() : ""
   };
   const next = $("next");
   next.disabled = true; next.textContent = "제출 중..."; $("prev").disabled = true;
   $("formerr").classList.remove("on");
 
-  const failed = [];
-  for (const k of Object.keys(p).filter(k => p[k] && !sent[k])){
-    const payload = k === "trip" ? { ...base, rrn: $("rrn").value.trim() } : base;
-    try{
-      const res = await fetch(PROGRAMS[k].url, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
-      const data = await res.json();
-      if (data.result !== "success") throw new Error(data.message);
-      sent[k] = true;
-    }catch(e){ failed.push(PROGRAMS[k].label); }
-  }
-
-  if (failed.length){
-    $("formerr").textContent = failed.join(", ") + " 신청을 보내지 못했습니다. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.";
+  try{
+    const res = await fetch(SUBMIT_URL, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+    const data = await res.json();
+    if (data.result !== "success") throw new Error(data.message);
+    finish(p);
+  }catch(e){
+    $("formerr").textContent = "신청서를 보내지 못했습니다. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.";
     $("formerr").classList.add("on");
     next.disabled = false; next.textContent = "다시 시도"; $("prev").disabled = false;
-    return;
   }
-  finish(p);
 }
 
 function finish(p){
