@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>소년부 교사 하반기 신청 · 온누리교회</title>
+<style>
+  :root{
+    --ink:#42281A;
+    --rust:#A9531F;
+    --rust-deep:#8E4318;
+    --gold:#D9A441;
+    --paper:#FCF6EC;
+    --card:#FFFFFF;
+    --line:#E7D9C2;
+    --line-soft:#F1E7D6;
+    --muted:#8A7458;
+    --alert:#A8342B;
+    --ok:#4F6F3A;
+    box-sizing:border-box;
+  }
+  *,*::before,*::after{box-sizing:inherit}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:Pretendard,"Apple SD Gothic Neo","맑은 고딕","Malgun Gothic",sans-serif;
+    font-size:16px;line-height:1.6;
+    -webkit-text-size-adjust:100%;
+  }
+  .app{max-width:480px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+
+  /* ── 상단 ── */
+  .top{
+    background:linear-gradient(160deg,#5A3620 0%,#42281A 55%,#3A2416 100%);
+    color:#fff;
+    padding:calc(28px + env(safe-area-inset-top,0px)) 22px 22px;
+  }
+  .top .church{font-size:12.5px;letter-spacing:.04em;color:#D9C4A3;margin:0 0 4px}
+  .top h1{font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0 0 16px}
+  .steps{display:flex;gap:6px}
+  .steps span{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.18)}
+  .steps span.on{background:var(--gold)}
+  .steps span.done{background:rgba(217,164,65,.55)}
+  .step-label{font-size:13px;color:#EAD9BD;margin:10px 0 0;display:flex;justify-content:space-between}
+  .step-label b{color:#fff;font-weight:600}
+
+  /* ── 본문 ── */
+  .body{flex:1;padding:22px 20px 120px}
+  .pane{display:none}
+  .pane.on{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  h2{font-size:18px;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+  .lead{margin:0 0 20px;font-size:14.5px;color:var(--muted)}
+
+  .field{margin-bottom:20px}
+  .lab{display:block;font-size:14px;font-weight:600;margin-bottom:8px}
+  .req{color:var(--alert);margin-left:3px}
+  .sub{display:block;font-size:12.5px;color:var(--muted);font-weight:400;margin-top:3px;line-height:1.5}
+  input[type=text],input[type=tel]{
+    width:100%;font:inherit;font-size:16px;padding:13px 14px;
+    background:#fff;border:1px solid var(--line);border-radius:10px;color:var(--ink);
+  }
+  input::placeholder{color:#C2B096}
+  input:focus-visible,button:focus-visible,.pcard:focus-within{outline:2px solid var(--rust);outline-offset:2px}
+  input.bad{border-color:var(--alert)}
+  .err{display:none;font-size:13px;color:var(--alert);margin-top:6px}
+  .err.on{display:block}
+
+  fieldset{border:0;margin:0;padding:0}
+  .radios{display:flex;gap:8px}
+  .radios label{flex:1;position:relative;display:block}
+  .radios input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+  .radios span{
+    display:block;text-align:center;padding:13px 6px;border:1px solid var(--line);
+    border-radius:10px;background:#fff;font-size:15px;
+  }
+  .radios input:checked+span{border-color:var(--rust);background:var(--rust);color:#fff;font-weight:600}
+
+  /* ── 프로그램 카드 ── */
+  .pcard{
+    position:relative;display:block;background:#fff;border:1.5px solid var(--line);
+    border-radius:14px;padding:16px 16px 14px;margin-bottom:12px;cursor:pointer;
+    transition:border-color .15s,box-shadow .15s;
+  }
+  .pcard input{position:absolute;opacity:0;width:0;height:0}
+  .pcard.sel{border-color:var(--rust);box-shadow:0 0 0 3px rgba(169,83,31,.12)}
+  .pcard .head{display:flex;align-items:flex-start;gap:12px}
+  .pcard .chk{
+    flex:0 0 22px;width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line);
+    background:#fff;margin-top:2px;display:flex;align-items:center;justify-content:center;
+  }
+  .pcard .chk svg{width:14px;height:14px;display:none}
+  .pcard.sel .chk{background:var(--rust);border-color:var(--rust)}
+  .pcard.sel .chk svg{display:block}
+  .pcard .tag{font-size:11.5px;color:var(--rust);font-weight:700;letter-spacing:.03em;margin:0 0 2px}
+  .pcard h3{font-size:17px;font-weight:700;margin:0;letter-spacing:-.01em}
+  .pcard .when{font-size:13.5px;color:var(--muted);margin:2px 0 0}
+  .pcard .fee{margin-left:auto;text-align:right;flex:0 0 auto}
+  .pcard .fee b{display:block;font-size:16px;color:var(--ink)}
+  .pcard .fee small{font-size:11.5px;color:var(--muted)}
+  .pcard .facts{
+    display:grid;grid-template-columns:52px 1fr;gap:5px 10px;
+    margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line-soft);
+    font-size:13.5px;
+  }
+  .pcard .facts dt{color:var(--muted);font-weight:500;margin:0}
+  .pcard .facts dd{margin:0}
+  .pcard .facts .warn{color:var(--alert)}
+  .pcard .facts .info{color:var(--rust)}
+  .pcard .facts .holder{color:var(--muted);font-size:12.5px}
+  .capture{
+    display:flex;gap:10px;align-items:flex-start;text-align:left;
+    background:#FBF0DE;border:1px dashed var(--rust);border-radius:12px;
+    padding:12px 14px;margin:6px 0 16px;font-size:14px;color:var(--rust-deep);
+  }
+  .capture svg{flex:0 0 20px;width:20px;height:20px;margin-top:2px}
+
+  .summary-box{
+    background:#FBF0DE;border-left:3px solid var(--rust);border-radius:0 10px 10px 0;
+    padding:12px 14px;font-size:14px;color:var(--rust-deep);margin-top:6px;
+  }
+
+  /* ── 확인 단계 ── */
+  .review{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:20px}
+  .review .row{display:flex;justify-content:space-between;gap:12px;padding:11px 15px;border-top:1px solid var(--line-soft);font-size:14.5px}
+  .review .row:first-child{border-top:0}
+  .review .row .k{color:var(--muted);flex:0 0 76px}
+  .review .row .v{flex:1;text-align:right;font-weight:500}
+  .review .row.total{background:#FBF0DE;font-weight:700}
+  .review .row.total .k{color:var(--rust-deep)}
+  .review .row.total .v{color:var(--rust-deep)}
+
+  details.privacy{border:1px solid var(--line);border-radius:10px;background:#fff;margin-bottom:12px}
+  details.privacy summary{padding:12px 14px;font-size:14px;font-weight:600;cursor:pointer;list-style:none}
+  details.privacy summary::-webkit-details-marker{display:none}
+  details.privacy summary::after{content:"펼치기";float:right;font-weight:400;color:var(--muted);font-size:13px}
+  details.privacy[open] summary::after{content:"접기"}
+  .privacy-body{padding:12px 14px 14px;font-size:13.5px;color:#503E2C;border-top:1px solid var(--line-soft)}
+  .privacy-body dt{font-weight:600;margin-top:8px}
+  .privacy-body dt:first-child{margin-top:0}
+  .privacy-body dd{margin:1px 0 0}
+  .privacy-body p{margin:10px 0 0;color:var(--muted);font-size:12.5px}
+  label.agree{display:flex;align-items:center;gap:10px;font-size:15px;cursor:pointer}
+  label.agree input{width:20px;height:20px;accent-color:var(--rust);margin:0;flex:0 0 auto}
+
+  .formerr{display:none;margin-top:14px;padding:12px 14px;background:#FAEBE7;border:1px solid #E6C8C0;border-radius:10px;font-size:14px;color:var(--alert)}
+  .formerr.on{display:block}
+
+  /* ── 하단 바 ── */
+  .bar{
+    position:fixed;left:0;right:0;bottom:0;
+    background:rgba(252,246,236,.92);backdrop-filter:blur(10px);
+    border-top:1px solid var(--line);
+    padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));
+  }
+  .bar .in{max-width:480px;margin:0 auto;display:flex;align-items:center;gap:10px}
+  .bar .total{flex:1;font-size:13px;color:var(--muted);line-height:1.3}
+  .bar .total b{display:block;font-size:17px;color:var(--ink);font-weight:700}
+  .btn{
+    font:inherit;font-size:15.5px;font-weight:700;border:0;border-radius:11px;
+    padding:14px 22px;cursor:pointer;white-space:nowrap;
+  }
+  .btn.primary{background:var(--rust);color:#fff}
+  .btn.primary:disabled{background:#D5C7B0;cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--muted);padding:14px 12px}
+
+  /* ── 완료 ── */
+  #done{display:none;text-align:center;padding:36px 20px 40px}
+  #done .mark{width:56px;height:56px;margin:0 auto 18px;border-radius:50%;background:var(--rust);display:flex;align-items:center;justify-content:center}
+  #done .mark svg{width:26px;height:26px}
+  #done h2{font-size:20px;margin:0 0 6px}
+  #done .lead{margin-bottom:22px}
+  .pay{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;text-align:left}
+  .pay .name{font-size:13px;color:var(--muted);margin:0 0 2px}
+  .pay .amt{font-size:17px;font-weight:700;margin:0 0 8px}
+  .pay .acct{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;background:#FBF0DE;border-radius:8px;padding:9px 12px}
+  .pay .acct button{font:inherit;font-size:12.5px;font-weight:600;color:var(--rust);background:#fff;border:1px solid var(--line);border-radius:6px;padding:5px 10px;cursor:pointer}
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:13.5px;padding:9px 16px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+  .toast.on{opacity:1}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <p class="church">온누리교회 소년부 · 교사용</p>
+    <h1>하반기 사역 신청</h1>
+    <div class="steps" aria-hidden="true"><span id="s0"></span><span id="s1"></span><span id="s2"></span></div>
+    <p class="step-label"><b id="stepName">기본 정보</b><span id="stepNo">1 / 3</span></p>
+  </header>
+
+  <main class="body">
+
+    <!-- STEP 1 · 기본 정보 -->
+    <section class="pane on" id="p0">
+      <h2>선생님 정보를 입력해 주세요</h2>
+      <p class="lead">한 번만 입력하면 제자반과 졸업여행에 함께 적용됩니다.</p>
+
+      <div class="field">
+        <fieldset>
+          <legend class="lab">소속 부서<span class="req">*</span></legend>
+          <div class="radios">
+            <label><input type="radio" name="dept" value="소년 1부"><span>소년 1부</span></label>
+            <label><input type="radio" name="dept" value="소년 2부"><span>소년 2부</span></label>
+          </div>
+        </fieldset>
+        <p class="err" id="e-dept">소속 부서를 선택해 주세요.</p>
+      </div>
+
+      <div class="field">
+        <label class="lab" for="name">이름<span class="req">*</span></label>
+        <input type="text" id="name" autocomplete="off" placeholder="예) 김다윗">
+        <p class="err" id="e-name"></p>
+      </div>
+
+      <div class="field">
+        <label class="lab" for="phone">전화번호<span class="req">*</span></label>
+        <input type="tel" id="phone" inputmode="numeric" autocomplete="off" placeholder="010-0000-0000" maxlength="13">
+        <p class="err" id="e-phone"></p>
+      </div>
+    </section>
+
+    <!-- STEP 2 · 프로그램 선택 -->
+    <section class="pane" id="p1">
+      <h2>참여할 사역을 선택해 주세요</h2>
+      <p class="lead">하나만 골라도, 둘 다 골라도 됩니다. 카드를 눌러 선택하세요.</p>
+
+      <label class="pcard" id="c-class">
+        <input type="checkbox" id="pick-class">
+        <div class="head">
+          <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+          <div>
+            <p class="tag">하반기 제자반</p>
+            <h3>예배하는 다윗학교</h3>
+            <p class="when">매주 토요일 14:00~16:00 · 4주</p>
+          </div>
+          <div class="fee"><b>10,000원</b><small>회비</small></div>
+        </div>
+        <dl class="facts">
+          <dt>기간</dt><dd>10월 17일 ~ 11월 14일 <span class="warn">(11월 7일 졸업여행으로 쉼)</span></dd>
+          <dt>장소</dt><dd>인천온누리교회 2층 기쁨홀</dd>
+          <dt>역할</dt><dd>학생과 함께 예배 훈련에 참여</dd>
+          <dt>계좌</dt><dd>카카오뱅크 3333-3303-22899 <span class="holder">박지혜</span></dd>
+        </dl>
+      </label>
+
+      <label class="pcard" id="c-trip">
+        <input type="checkbox" id="pick-trip">
+        <div class="head">
+          <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+          <div>
+            <p class="tag">6학년 졸업여행</p>
+            <h3>서울랜드</h3>
+            <p class="when">11월 7일 (토) 09:00 출발 · 18:00 도착</p>
+          </div>
+          <div class="fee"><b>10,000원</b><small>회비</small></div>
+        </div>
+        <dl class="facts">
+          <dt>이동</dt><dd>버스 대절 · 여행자 보험 가입</dd>
+          <dt>역할</dt><dd>조별 담당 교사로 학생 인솔, 식사 동행</dd>
+          <dt>준비</dt><dd class="info">보험 가입을 위해 주민등록번호가 필요합니다</dd>
+          <dt>계좌</dt><dd>카카오뱅크 3333-33-1564836 <span class="holder">강주희</span></dd>
+        </dl>
+      </label>
+
+      <p class="err" id="e-pick">하나 이상 선택해 주세요.</p>
+    </section>
+
+    <!-- STEP 3 · 추가 정보 + 확인 -->
+    <section class="pane" id="p2">
+      <h2>내용을 확인하고 신청해 주세요</h2>
+      <p class="lead">아래 내용이 맞는지 확인 후 동의하고 신청하기를 눌러 주세요.</p>
+
+      <div class="field" id="rrnField" hidden>
+        <label class="lab" for="rrn">주민등록번호<span class="req">*</span>
+          <span class="sub">졸업여행 여행자 보험 가입에만 사용하며, 가입 후 즉시 파기합니다.</span></label>
+        <input type="tel" id="rrn" inputmode="numeric" autocomplete="off" placeholder="000000-0000000" maxlength="14">
+        <p class="err" id="e-rrn"></p>
+      </div>
+
+      <div class="review" id="review"></div>
+
+      <details class="privacy">
+        <summary>개인정보 수집·이용 안내</summary>
+        <div class="privacy-body">
+          <dl>
+            <dt>수집 항목</dt><dd id="pv-items">이름, 전화번호</dd>
+            <dt>수집 목적</dt><dd id="pv-purpose">사역 운영 및 안내 연락</dd>
+            <dt>보유 기간</dt><dd id="pv-keep">행사 종료 후 3개월 이내 파기</dd>
+          </dl>
+          <p>동의를 거부하실 수 있으나, 이 경우 신청이 어렵습니다.</p>
+        </div>
+      </details>
+      <label class="agree"><input type="checkbox" id="agree"><span>위 내용에 동의합니다 (필수)</span></label>
+      <div class="formerr" id="formerr" role="alert"></div>
+    </section>
+
+    <!-- 완료 -->
+    <section id="done" aria-live="polite">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 7"/></svg></div>
+      <h2>신청이 완료되었습니다</h2>
+      <p class="lead" id="doneLead"></p>
+      <div class="capture">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+        <span>이 화면을 벗어나면 계좌번호를 다시 볼 수 없습니다. <b>지금 화면을 캡처</b>해 두시거나 아래 복사 버튼을 눌러 저장해 주세요.</span>
+      </div>
+      <div id="payList"></div>
+    </section>
+  </main>
+
+  <div class="bar" id="bar">
+    <div class="in">
+      <button class="btn ghost" id="prev" type="button" hidden>이전</button>
+      <div class="total" id="totalBox"><span>회비 합계</span><b id="totalAmt">0원</b></div>
+      <button class="btn primary" id="next" type="button">다음</button>
+    </div>
+  </div>
+  <div class="toast" id="toast">복사되었습니다</div>
+</div>
+
+<script>
+/* ────────────────────────────────────────────
+   각 프로그램의 Apps Script 웹앱 주소 (기존 시트에 그대로 쌓임)
+   ──────────────────────────────────────────── */
+const PROGRAMS = {
+  class: {
+    label: "하반기 제자반",
+    fee: 10000,
+    url: "https://script.google.com/macros/s/AKfycbzfIIGRadhynFuH5L4u3XO4pxBum_ysfhProxvAiy7IYH8aaX1gDNMrh4kd0HEEqwor/exec",
+    bank: "카카오뱅크", acct: "3333-3303-22899", holder: "박지혜"
+  },
+  trip: {
+    label: "6학년 졸업여행",
+    fee: 10000,
+    url: "https://script.google.com/macros/s/AKfycbx9Xj3LbvtK90cKbteU3SGY-fSolLLso8Um6ZyujYkT2xjnGCbnSsGtPYzxKxDfFAq7/exec",
+    bank: "카카오뱅크", acct: "3333-33-1564836", holder: "강주희"
+  }
+};
+
+const $ = id => document.getElementById(id);
+const STEP_NAMES = ["기본 정보","사역 선택","확인 및 동의"];
+let step = 0;
+
+/* ── 유틸 ── */
+const NAME_RE = /^[가-힣]{2,}$/, PHONE_RE = /^010-\d{4}-\d{4}$/, RRN_RE = /^\d{6}-\d{7}$/;
+const won = n => n.toLocaleString("ko-KR") + "원";
+function formatPhone(v){const d=v.replace(/\D/g,"").slice(0,11);if(d.length<4)return d;if(d.length<8)return d.slice(0,3)+"-"+d.slice(3);return d.slice(0,3)+"-"+d.slice(3,7)+"-"+d.slice(7);}
+function formatRRN(v){const d=v.replace(/\D/g,"").slice(0,13);return d.length<7?d:d.slice(0,6)+"-"+d.slice(6);}
+function validRRN(v){if(!RRN_RE.test(v))return false;const mm=+v.slice(2,4),dd=+v.slice(4,6),g=+v.slice(7,8);return mm>=1&&mm<=12&&dd>=1&&dd<=31&&g>=1&&g<=8;}
+function showErr(id,msg){const el=$(id),b=$("e-"+id);if(el)el.classList.add("bad");if(msg)b.textContent=msg;b.classList.add("on");}
+function clearErr(id){const el=$(id),b=$("e-"+id);if(el)el.classList.remove("bad");b.classList.remove("on");}
+const dept = () => document.querySelector('input[name=dept]:checked');
+const picked = () => ({ class: $("pick-class").checked, trip: $("pick-trip").checked });
+const total = () => Object.entries(picked()).reduce((a,[k,v]) => a + (v ? PROGRAMS[k].fee : 0), 0);
+
+/* ── 입력 이벤트 ── */
+$("phone").addEventListener("input", e => { e.target.value = formatPhone(e.target.value); clearErr("phone"); });
+$("rrn").addEventListener("input", e => { e.target.value = formatRRN(e.target.value); clearErr("rrn"); });
+$("name").addEventListener("input", () => clearErr("name"));
+document.querySelectorAll('input[name=dept]').forEach(r => r.addEventListener("change", () => clearErr("dept")));
+["class","trip"].forEach(k => {
+  $("pick-"+k).addEventListener("change", e => {
+    $("c-"+k).classList.toggle("sel", e.target.checked);
+    $("e-pick").classList.remove("on");
+    renderTotal();
+  });
+});
+$("agree").addEventListener("change", () => { $("next").disabled = !$("agree").checked; });
+
+/* ── 화면 ── */
+function renderTotal(){
+  const t = total();
+  $("totalAmt").textContent = won(t);
+  $("totalBox").style.visibility = step === 0 ? "hidden" : "visible";
+}
+function go(n){
+  step = n;
+  document.querySelectorAll(".pane").forEach((p,i) => p.classList.toggle("on", i === n));
+  for (let i=0;i<3;i++){ const s=$("s"+i); s.className = i<n ? "done" : i===n ? "on" : ""; }
+  $("stepName").textContent = STEP_NAMES[n];
+  $("stepNo").textContent = (n+1) + " / 3";
+  $("prev").hidden = n === 0;
+  $("next").textContent = n === 2 ? "신청하기" : "다음";
+  $("next").disabled = n === 2 ? !$("agree").checked : false;
+  renderTotal();
+  if (n === 2) buildReview();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function buildReview(){
+  const p = picked(), d = dept().value, chosen = Object.keys(p).filter(k => p[k]);
+  $("rrnField").hidden = !p.trip;
+
+  const rows = [
+    ["이름", $("name").value.trim()],
+    ["부서", d],
+    ["전화번호", $("phone").value.trim()],
+    ["신청 사역", chosen.map(k => PROGRAMS[k].label).join(" · ")],
+  ];
+  $("review").innerHTML =
+    rows.map(([k,v]) => `<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("") +
+    `<div class="row total"><span class="k">회비 합계</span><span class="v">${won(total())}</span></div>`;
+
+  $("pv-items").textContent = p.trip ? "이름, 전화번호, 주민등록번호" : "이름, 전화번호";
+  $("pv-purpose").textContent = p.trip ? "사역 운영 및 안내 연락, 여행자 보험 가입 (주민등록번호는 보험 용도로만 사용)" : "사역 운영 및 안내 연락";
+  $("pv-keep").textContent = p.trip ? "주민등록번호는 보험 가입 후 즉시 파기 · 그 외 항목은 행사 종료 후 3개월 이내 파기" : "행사 종료 후 3개월 이내 파기";
+}
+
+/* ── 단계 검증 ── */
+function validStep(n){
+  let ok = true, first = null;
+  const mark = el => { ok = false; first = first || el; };
+  if (n === 0){
+    if (!dept()){ showErr("dept"); mark($("e-dept")); }
+    if (!NAME_RE.test($("name").value.trim())){ showErr("name","이름을 한글 두 글자 이상으로 입력해 주세요."); mark($("name")); }
+    const ph = $("phone").value.trim();
+    if (!PHONE_RE.test(ph)){ showErr("phone", ph ? "010으로 시작하는 11자리 번호를 입력해 주세요." : "전화번호를 입력해 주세요."); mark($("phone")); }
+  }
+  if (n === 1){
+    if (!total()){ $("e-pick").classList.add("on"); mark($("e-pick")); }
+  }
+  if (n === 2 && picked().trip){
+    const r = $("rrn").value.trim();
+    if (!validRRN(r)){ showErr("rrn", r ? "주민등록번호 13자리를 정확히 입력해 주세요." : "주민등록번호를 입력해 주세요."); mark($("rrn")); }
+  }
+  if (first){ first.scrollIntoView({block:"center"}); first.focus && first.focus({preventScroll:true}); }
+  return ok;
+}
+
+$("prev").addEventListener("click", () => go(step - 1));
+$("next").addEventListener("click", () => {
+  if (!validStep(step)) return;
+  if (step < 2) return go(step + 1);
+  submit();
+});
+
+/* ── 제출: 선택한 프로그램마다 각각 전송, 실패한 것만 재시도 ── */
+const sent = { class:false, trip:false };
+async function submit(){
+  const p = picked(), d = dept().value;
+  const base = {
+    timestamp: new Date().toISOString(),
+    group: "교사 (" + d + ")",
+    name: $("name").value.trim(),  studentName: $("name").value.trim(),
+    phone: $("phone").value.trim(), studentPhone: $("phone").value.trim(),
+    parentName: "", parentPhone: ""
+  };
+  const next = $("next");
+  next.disabled = true; next.textContent = "제출 중..."; $("prev").disabled = true;
+  $("formerr").classList.remove("on");
+
+  const failed = [];
+  for (const k of Object.keys(p).filter(k => p[k] && !sent[k])){
+    const payload = k === "trip" ? { ...base, rrn: $("rrn").value.trim() } : base;
+    try{
+      const res = await fetch(PROGRAMS[k].url, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.result !== "success") throw new Error(data.message);
+      sent[k] = true;
+    }catch(e){ failed.push(PROGRAMS[k].label); }
+  }
+
+  if (failed.length){
+    $("formerr").textContent = failed.join(", ") + " 신청을 보내지 못했습니다. 인터넷 연결을 확인한 뒤 다시 눌러 주세요.";
+    $("formerr").classList.add("on");
+    next.disabled = false; next.textContent = "다시 시도"; $("prev").disabled = false;
+    return;
+  }
+  finish(p);
+}
+
+function finish(p){
+  document.querySelectorAll(".pane").forEach(x => x.classList.remove("on"));
+  $("bar").hidden = true;
+  document.querySelector(".body").style.paddingBottom = "40px";
+  const chosen = Object.keys(p).filter(k => p[k]);
+  $("doneLead").textContent = $("name").value.trim() + " 선생님, " + chosen.map(k => PROGRAMS[k].label).join("과 ") + " 신청이 접수되었습니다. 회비는 아래 계좌로 입금해 주세요.";
+  $("payList").innerHTML = chosen.map(k => {
+    const P = PROGRAMS[k];
+    return `<div class="pay">
+      <p class="name">${P.label}</p>
+      <p class="amt">${won(P.fee)}</p>
+      <div class="acct"><span>${P.bank} ${P.acct}<br><small style="color:var(--muted)">예금주 ${P.holder}</small></span>
+      <button type="button" data-acct="${P.acct}">계좌 복사</button></div>
+    </div>`;
+  }).join("");
+  $("payList").querySelectorAll("button").forEach(b => b.addEventListener("click", async () => {
+    try{ await navigator.clipboard.writeText(b.dataset.acct); toast("계좌번호가 복사되었습니다"); }
+    catch{ toast(b.dataset.acct); }
+  }));
+  $("done").style.display = "block";
+  $("stepName").textContent = "완료"; $("stepNo").textContent = "";
+  for (let i=0;i<3;i++) $("s"+i).className = "done";
+  window.scrollTo({top:0});
+}
+let tt;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove("on"),1600); }
+
+go(0);
+</script>
+</body>
+</html>
