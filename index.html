@@ -78,6 +78,35 @@
   }
   .radios input:checked+span{border-color:var(--rust);background:var(--rust);color:#fff;font-weight:600}
 
+  /* ── 날짜 선택 ── */
+  .dates{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .dates label{position:relative;display:block}
+  .dates input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+  .dates .box{
+    display:flex;align-items:center;gap:9px;padding:12px;
+    border:1px solid var(--line);border-radius:10px;background:#fff;
+  }
+  .dates input:checked+.box{border-color:var(--rust);background:#FBF0DE}
+  .dates input:focus-visible+.box{outline:2px solid var(--rust);outline-offset:2px}
+  .dates .tick{
+    flex:0 0 20px;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);
+    background:#fff;display:flex;align-items:center;justify-content:center;
+  }
+  .dates .tick svg{width:12px;height:12px;display:none}
+  .dates input:checked+.box .tick{background:var(--rust);border-color:var(--rust)}
+  .dates input:checked+.box .tick svg{display:block}
+  .dates .d{line-height:1.3}
+  .dates .d b{display:block;font-size:14.5px;font-weight:600}
+  .dates .d small{font-size:11.5px;color:var(--muted)}
+  .date-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px}
+  .date-count{font-size:13.5px;font-weight:600;color:var(--rust-deep);margin:0}
+  .date-count.none{color:var(--muted);font-weight:400}
+  .date-all{
+    font:inherit;font-size:13px;font-weight:600;color:var(--rust);
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;
+  }
+  .date-note{font-size:12.5px;color:var(--muted);margin:9px 0 0;line-height:1.5}
+
   /* ── 프로그램 카드 ── */
   .pcard{
     position:relative;display:block;background:#fff;border:1.5px solid var(--line);
@@ -275,6 +304,20 @@
       <h2>내용을 확인하고 신청해 주세요</h2>
       <p class="lead">아래 내용이 맞는지 확인 후 동의하고 신청하기를 눌러 주세요.</p>
 
+      <div class="field" id="classDatesField" hidden>
+        <fieldset>
+          <legend class="lab">제자반 참석 가능한 날<span class="req">*</span>
+            <span class="sub">참석하실 수 있는 날짜를 모두 눌러 주세요. 4주 전부가 아니어도 괜찮습니다.</span></legend>
+          <div class="dates" id="dateList"></div>
+        </fieldset>
+        <div class="date-foot">
+          <p class="date-count none" id="dateCount">아직 선택하지 않았습니다</p>
+          <button type="button" class="date-all" id="dateAll">모두 선택</button>
+        </div>
+        <p class="date-note">11월 7일(토)은 졸업여행이 있어 제자반을 쉽니다.</p>
+        <p class="err" id="e-dates">참석 가능한 날짜를 하나 이상 선택해 주세요.</p>
+      </div>
+
       <div class="field" id="rrnField" hidden>
         <label class="lab" for="rrn">주민등록번호<span class="req">*</span>
           <span class="sub">졸업여행 여행자 보험 가입에만 사용하며, 가입 후 즉시 파기합니다.</span></label>
@@ -328,6 +371,14 @@
    ──────────────────────────────────────────── */
 const SUBMIT_URL = "https://script.google.com/macros/s/AKfycbxSJzGWX3tUzLGzm97wc_wC01_0jZHR1dLOKWLlRvJ1XbeZ_hm1-yZv-vOKmZUtaA/exec";
 
+/* 제자반 모임 날짜 — 날짜가 바뀌면 이 목록만 고치면 됩니다 */
+const CLASS_DATES = [
+  { v:"10/17", label:"10월 17일", week:"1주차" },
+  { v:"10/24", label:"10월 24일", week:"2주차" },
+  { v:"10/31", label:"10월 31일", week:"3주차" },
+  { v:"11/14", label:"11월 14일", week:"4주차" }
+];
+
 const PROGRAMS = {
   class: { label: "하반기 제자반",  fee: 10000, bank: "카카오뱅크", acct: "3333-3303-22899", holder: "박지혜" },
   trip:  { label: "6학년 졸업여행", fee: 10000, bank: "카카오뱅크", acct: "3333-33-1564836", holder: "강주희" }
@@ -348,6 +399,7 @@ function clearErr(id){const el=$(id),b=$("e-"+id);if(el)el.classList.remove("bad
 const dept = () => document.querySelector('input[name=dept]:checked');
 const picked = () => ({ class: $("pick-class").checked, trip: $("pick-trip").checked });
 const total = () => Object.entries(picked()).reduce((a,[k,v]) => a + (v ? PROGRAMS[k].fee : 0), 0);
+const classDates = () => [...document.querySelectorAll(".date-pick:checked")].map(c => c.value);
 
 /* ── 입력 이벤트 ── */
 $("phone").addEventListener("input", e => { e.target.value = formatPhone(e.target.value); clearErr("phone"); });
@@ -362,6 +414,34 @@ document.querySelectorAll('input[name=dept]').forEach(r => r.addEventListener("c
   });
 });
 $("agree").addEventListener("change", () => { $("next").disabled = !$("agree").checked; });
+
+/* ── 제자반 참석 날짜 ── */
+$("dateList").innerHTML = CLASS_DATES.map(d => `
+  <label>
+    <input type="checkbox" class="date-pick" value="${d.v}">
+    <span class="box">
+      <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+      <span class="d"><b>${d.label}</b><small>${d.week} · 토요일</small></span>
+    </span>
+  </label>`).join("");
+
+function renderDateCount(){
+  const n = classDates().length;
+  const box = $("dateCount");
+  box.textContent = n ? `${CLASS_DATES.length}회 중 ${n}회 참석` : "아직 선택하지 않았습니다";
+  box.classList.toggle("none", n === 0);
+  $("dateAll").textContent = n === CLASS_DATES.length ? "모두 해제" : "모두 선택";
+}
+document.querySelectorAll(".date-pick").forEach(c => c.addEventListener("change", () => {
+  clearErr("dates"); renderDateCount();
+  if (step === 2) buildReview();
+}));
+$("dateAll").addEventListener("click", () => {
+  const allOn = classDates().length === CLASS_DATES.length;
+  document.querySelectorAll(".date-pick").forEach(c => c.checked = !allOn);
+  clearErr("dates"); renderDateCount();
+  if (step === 2) buildReview();
+});
 
 /* ── 화면 ── */
 function renderTotal(){
@@ -384,6 +464,7 @@ function go(n){
 }
 function buildReview(){
   const p = picked(), d = dept().value, chosen = Object.keys(p).filter(k => p[k]);
+  $("classDatesField").hidden = !p.class;
   $("rrnField").hidden = !p.trip;
 
   const rows = [
@@ -392,6 +473,10 @@ function buildReview(){
     ["전화번호", $("phone").value.trim()],
     ["신청 사역", chosen.map(k => PROGRAMS[k].label).join(" · ")],
   ];
+  if (p.class){
+    const ds = classDates();
+    rows.push(["제자반 참석", ds.length ? `${CLASS_DATES.length}회 중 ${ds.length}회 · ${ds.join(", ")}` : "아직 선택하지 않았습니다"]);
+  }
   $("review").innerHTML =
     rows.map(([k,v]) => `<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("") +
     `<div class="row total"><span class="k">회비 합계</span><span class="v">${won(total())}</span></div>`;
@@ -413,6 +498,9 @@ function validStep(n){
   }
   if (n === 1){
     if (!total()){ $("e-pick").classList.add("on"); mark($("e-pick")); }
+  }
+  if (n === 2 && picked().class && !classDates().length){
+    showErr("dates"); mark($("e-dates"));
   }
   if (n === 2 && picked().trip){
     const r = $("rrn").value.trim();
@@ -438,6 +526,8 @@ async function submit(){
     dept:  dept().value,
     phone: $("phone").value.trim(),
     class: p.class,
+    classDates:  p.class ? classDates().join(", ") : "",
+    classCount:  p.class ? classDates().length : 0,
     trip:  p.trip,
     rrn:   p.trip ? $("rrn").value.trim() : ""
   };
